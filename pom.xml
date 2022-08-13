@@ -16,11 +16,13 @@
     <properties>
         <java.version>11</java.version>
         <!-- SONAR -->
+        <!--sonar.host.url>http://sonarqube:9000/</sonar.host.url>
+        <sonar.login></sonar.login -->
         <sonar.projectKey>sonar-sudheergogula</sonar.projectKey>
         <sonar.projectName>sonar-sudheergogula</sonar.projectName>
         <sonar.projectVersion>${project.version}</sonar.projectVersion>
         <sonar.sources>src/main/java</sonar.sources>
-        <sonar.java.binaries>**/target/classes</sonar.java.binaries>
+        <sonar.java.binaries>target/classes</sonar.java.binaries>
         <sonar.sourceEncoding>UTF-8</sonar.sourceEncoding>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.junit.reportsPath>target/surefire-reports/TEST-*.xml</sonar.junit.reportsPath>
