@@ -24,7 +24,7 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'mvn clean compile'
+                sh 'mvn -B -DskipTests clean package'
             }
         }
         stage('Test case execution') {
@@ -32,7 +32,7 @@ pipeline {
                 branch 'master'
             }
             steps {
-                sh 'mvn clean test'
+                sh 'mvn test'
             }
         }
         stage('Sonarqube Analysis') {
@@ -41,10 +41,11 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv(installationName: 'SonarQubeScanner') {
-                    sh 'mvn clean package sonar:sonar'
+                    sh 'mvn test sonar:sonar'
                 }
             }
         }
+
         stage('Kubernetes Deployment') {
             steps {
                 echo "Building Docker image ..."
