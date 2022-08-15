@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-config
+  labels:
+    app: todo-webapp
+data:
+  TODO_DATASOURCE: jdbc:h2:mem
+  TODO_DATASOURCE_DB_NAME: tododb
+  TODO_DATASOURCE_DRIVER: org.h2.Driver
+  TODO_DATABASE-DIALECT: org.hibernate.dialect.H2Dialect

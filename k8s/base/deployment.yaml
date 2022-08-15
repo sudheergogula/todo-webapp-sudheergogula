@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-webapp-deployment
+  labels:
+    app: todo-webapp
+spec:
+  replicas: 4
+  template:
+    metadata:
+      name: todo-webapp-pod
+      labels:
+        app: todo-webapp
+    spec:
+      containers:
+        - name: todowebapp-container
+          image: gogulasudheer/i-todo-sudheergogula
+          envFrom:
+            - configMapRef:
+                name: todo-config
+            - secretRef:
+                name: todo-secret
+  selector:
+    matchLabels:
+      app: todo-webapp
