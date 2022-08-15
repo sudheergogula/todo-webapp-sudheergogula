@@ -4,6 +4,6 @@ namePrefix: master-
 commonLabels:
   app: master-todo-webapp
 images:
-  - name: gogulasudheer/i-todo-sudheergogula
-    newName: gogulasudheer/i-todo-sudheergogula-master
+  - name: gogulasudheer/i-sudheergogula
+    newName: gogulasudheer/i-sudheergogula-master
     newTag: latest
