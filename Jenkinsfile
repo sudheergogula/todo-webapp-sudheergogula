@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     environment {
-        registry = "gogulasudheer/i-todo-sudheergogula-${env.BRANCH_NAME}"
+        registry = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
         registryCredential = 'dockerhub-token'
     }
 
