@@ -1,0 +1,9 @@
+resources:
+  - ../../base
+namePrefix: master-
+commonLabels:
+  app: master-todo-webapp
+images:
+  - name: gogulasudheer/i-todo-sudheergogula
+    newName: gogulasudheer/i-todo-sudheergogula-master
+    newTag: latest

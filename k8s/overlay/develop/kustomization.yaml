@@ -1,0 +1,10 @@
+resources:
+  - ../../base
+namePrefix: develop-
+commonLabels:
+  app: develop-todo-webapp
+images:
+  - name: gogulasudheer/i-todo-sudheergogula
+    newName: gogulasudheer/i-todo-sudheergogula-develop
+    newTag: latest
+
