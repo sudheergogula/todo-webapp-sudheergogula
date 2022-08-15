@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: todowebapp-container
-          image: gogulasudheer/i-todo-sudheergogula
+          image: gogulasudheer/i-sudheergogula
           envFrom:
             - configMapRef:
                 name: todo-config
