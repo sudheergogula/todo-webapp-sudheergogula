@@ -60,7 +60,7 @@ pipeline {
             }
             post {
                 always {
-                    sh 'docker image prune -a -f'
+                    sh 'docker image prune -a --filter="label=app=todowebapp"'
                 }
             }
         }
@@ -72,15 +72,11 @@ pipeline {
         }
     }
     post {
-        success {
-            mail(to: 'sudheer.gogula@nagarro.com',
-                    subject: "${BUILD_DISPLAY_NAME} pipeline ran successfully",
-                    body: "Build no. ${BUILD_NUMBER} of branch ${env.BRANCH_NAME} executed successfully.")
-        }
         failure {
-            mail(to: 'sudheer.gogula@nagarro.com',
-                    subject: "${BUILD_DISPLAY_NAME} pipeline failed",
-                    body: "Build no. ${BUILD_NUMBER} of branch ${env.BRANCH_NAME} failed.")
+            emailext to: 'sudheer.gogula@nagarro.com',
+            subject: "Jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
+            body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
+            attachLog: true
         }
         cleanup {
             cleanWs()
