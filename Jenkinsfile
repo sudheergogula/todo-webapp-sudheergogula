@@ -46,7 +46,7 @@ pipeline {
             }
         }
 
-        stage('Kubernetes Deployment') {
+        stage('Build and push docker image') {
             steps {
                 echo "Building Docker image ..."
                 script {
@@ -57,9 +57,33 @@ pipeline {
                     }
                 }
                 echo "Docker image pushed to '${registry}'"
+            }
+            post {
+                always {
+                    sh 'docker image prune -a -f'
+                }
+            }
+        }
 
+        stage('Kubernetes Deployment') {
+            steps {
                 echo "Initiating Kubernetes deployment ..."
             }
+        }
+    }
+    post {
+        success {
+            mail(to: 'sudheer.gogula@nagarro.com',
+                    subject: "${BUILD_DISPLAY_NAME} pipeline ran successfully",
+                    body: "Build no. ${BUILD_NUMBER} of branch ${env.BRANCH_NAME} executed successfully.")
+        }
+        failure {
+            mail(to: 'sudheer.gogula@nagarro.com',
+                    subject: "${BUILD_DISPLAY_NAME} pipeline failed",
+                    body: "Build no. ${BUILD_NUMBER} of branch ${env.BRANCH_NAME} failed.")
+        }
+        cleanup {
+            cleanWs()
         }
     }
 }
