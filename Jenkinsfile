@@ -1,10 +1,11 @@
-// noinspection GroovyAssignabilityCheck
+#!/usr/bin/env groovy
 
 pipeline {
     agent any
 
     environment {
         imageName = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
+        k8s_namespace = 'kubernetes-cluster-sudheergogula'
     }
 
     tools {
@@ -53,8 +54,19 @@ pipeline {
 
         stage('Kubernetes Deployment') {
             steps {
-                echo "Initiating Kubernetes deployment ..."
-                sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n kubernetes-cluster-sudheergogula"
+                script {
+                    echo "Initiating Kubernetes deployment ..."
+                    sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n ${k8s_namespace}"
+
+                    echo "Verifying deployment ..."
+                    def status = sh(script: "kubectl rollout status deployment/develop-todo-webapp-deployment -n ${k8s_namespace}", returnStdout: true)
+                    def exitCode = sh(script: 'echo $?', returnStdout: true)
+                    if (exitCode) {
+                        echo "Kubernetes deployment is successful"
+                    } else {
+                        error "Pipeline aborted due to kubernetes deployment error - ${status}"
+                    }
+                }
             }
         }
     }
