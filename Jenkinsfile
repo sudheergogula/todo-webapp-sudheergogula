@@ -68,7 +68,7 @@ pipeline {
             // attachLog: true
         }
         cleanup {
-            sh 'docker image prune -a -f --filter="label=app=todowebapp"'
+            sh "docker image rm ${imageName}:latest ${imageName}:${BUILD_NUMBER}"
             cleanWs()
         }
     }
