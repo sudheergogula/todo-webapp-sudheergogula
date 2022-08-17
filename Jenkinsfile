@@ -60,10 +60,12 @@ pipeline {
     }
     post {
         failure {
-            emailext to: 'sudheer.gogula@nagarro.com',
-            subject: "Jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
-            body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
-            attachLog: true
+            echo "Pipeline failed."
+            // Uncomment the following lines to send a mail using emailext plugin
+            // emailext to: 'sudheer.gogula@nagarro.com',
+            // subject: "Jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
+            // body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
+            // attachLog: true
         }
         cleanup {
             sh 'docker image prune -a --filter="label=app=todowebapp"'
