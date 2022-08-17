@@ -4,14 +4,12 @@ pipeline {
     agent any
 
     environment {
-        registry = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
-        registryCredential = 'dockerhub-token'
+        imageName = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
     }
 
     tools {
         git 'Default'
         maven 'Maven3'
-        dockerTool 'Docker'
     }
     options {
         timestamps()
@@ -46,20 +44,30 @@ pipeline {
             }
         }
 
-        stage('Kubernetes Deployment') {
+        stage('Build Docker Image') {
             steps {
                 echo "Building Docker image ..."
-                script {
-                    dockerImage = docker.build registry
-                    docker.withRegistry('', registryCredential) {
-                        dockerImage.push("${BUILD_NUMBER}")
-                        dockerImage.push('latest')
-                    }
-                }
-                echo "Docker image pushed to '${registry}'"
-
-                echo "Initiating Kubernetes deployment ..."
+                sh "docker build -t ${imageName}:latest -t ${imageName}:${BUILD_NUMBER} ."
             }
+        }
+
+        stage('Kubernetes Deployment') {
+            steps {
+                echo "Initiating Kubernetes deployment ..."
+                sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n kubernetes-cluster-sudheergogula"
+            }
+        }
+    }
+    post {
+        failure {
+            emailext to: 'sudheer.gogula@nagarro.com',
+            subject: "Jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
+            body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
+            attachLog: true
+        }
+        cleanup {
+            sh 'docker image prune -a --filter="label=app=todowebapp"'
+            cleanWs()
         }
     }
 }
