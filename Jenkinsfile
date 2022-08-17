@@ -4,14 +4,12 @@ pipeline {
     agent any
 
     environment {
-        registry = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
-        registryCredential = 'dockerhub-token'
+        imageName = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
     }
 
     tools {
         git 'Default'
         maven 'Maven3'
-        dockerTool 'Docker'
     }
     options {
         timestamps()
@@ -46,28 +44,17 @@ pipeline {
             }
         }
 
-        stage('Build and push docker image') {
+        stage('Build Docker Image') {
             steps {
                 echo "Building Docker image ..."
-                script {
-                    dockerImage = docker.build registry
-                    docker.withRegistry('', registryCredential) {
-                        dockerImage.push("${BUILD_NUMBER}")
-                        dockerImage.push('latest')
-                    }
-                }
-                echo "Docker image pushed to '${registry}'"
-            }
-            post {
-                always {
-                    sh 'docker image prune -a --filter="label=app=todowebapp"'
-                }
+                sh "docker build -t ${imageName}:latest -t ${imageName}:${BUILD_NUMBER} ."
             }
         }
 
         stage('Kubernetes Deployment') {
             steps {
                 echo "Initiating Kubernetes deployment ..."
+                sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n kubernetes-cluster-sudheergogula"
             }
         }
     }
@@ -79,6 +66,7 @@ pipeline {
             attachLog: true
         }
         cleanup {
+            sh 'docker image prune -a --filter="label=app=todowebapp"'
             cleanWs()
         }
     }
