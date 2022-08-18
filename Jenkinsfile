@@ -4,8 +4,9 @@ pipeline {
     agent any
 
     environment {
-        imageName = "gogulasudheer/i-sudheergogula-${env.BRANCH_NAME}"
-        k8s_namespace = 'kubernetes-cluster-sudheergogula'
+        userName = "sudheergogula"
+        imageName = "gogulasudheer/i-${userName}-${env.BRANCH_NAME}"
+        k8s_namespace = "kubernetes-cluster-${userName}"
     }
 
     tools {
@@ -60,13 +61,10 @@ pipeline {
                         sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n ${k8s_namespace}"
 
                         echo "Verifying deployment ..."
-                        def status = ""
-                        timeout(time: 2, unit: 'MINUTES') {
-                            status = sh(script: "kubectl rollout status deployment/develop-todo-webapp-deployment -n ${k8s_namespace}", returnStdout: true)
-                        }
+                        def status = sh(script: "kubectl rollout status deployment/${env.BRANCH_NAME}-todo-webapp-deployment -n ${k8s_namespace} --watch --timeout=2m", returnStdout: true)
                         def exitCode = sh(script: 'echo $?', returnStdout: true)
                         if (exitCode) {
-                            echo "Kubernetes deployment is successful"
+                            echo "Kubernetes deployment is successful with status - ${status}"
                         } else {
                             error "Pipeline aborted due to kubernetes deployment error - ${status}"
                         }
@@ -76,10 +74,42 @@ pipeline {
                 }
             }
         }
+
+        stage('Application Health check') {
+            steps {
+                // Wait for sometime for the load balancer IP to be allocated
+                sleep(10)
+                script {
+                    try {
+                        echo "Application health check ..."
+                        timeout(2) {
+                            waitUntil {
+                                def ip = sh(script: "kubectl get service/${env.BRANCH_NAME}-todo-webapp-lb-service -n ${k8s_namespace} --output jsonpath='{.status.loadBalancer.ingress[0].ip}'", returnStdout: true)
+                                if (ip != null && ip?.trim()) {
+                                    echo "The load balancer IP is '${ip}'"
+                                    def httpResponseCode = sh(script: "curl -s -o /dev/null -w '%{http_code}' ${ip} --connect-timeout 60", returnStdout: true)
+                                    if (httpResponseCode != null && httpResponseCode?.trim() && httpResponseCode == "200") {
+                                        echo "Application health check successful"
+                                    } else {
+                                        error "Application health check failed"
+                                    }
+                                    return true
+                                } else {
+                                    echo "Load balancer IP is not allocated yet"
+                                    return false
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        echo "Error in doing App health check - ${err}"
+                    }
+                }
+            }
+        }
     }
     post {
         failure {
-            echo "Pipeline failed."
+            echo "Pipeline failed"
             // Uncomment the following lines to send a mail using emailext plugin
             // emailext to: 'sudheer.gogula@nagarro.com',
             // subject: "Jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
