@@ -15,7 +15,6 @@ spec:
       containers:
         - name: todowebapp-container
           image: gogulasudheer/i-sudheergogula
-          imagePullPolicy: Never # To pull images present locally
           envFrom:
             - configMapRef:
                 name: todo-config
