@@ -55,16 +55,23 @@ pipeline {
         stage('Kubernetes Deployment') {
             steps {
                 script {
-                    echo "Initiating Kubernetes deployment ..."
-                    sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n ${k8s_namespace}"
+                    try {
+                        echo "Initiating Kubernetes deployment ..."
+                        sh "kubectl apply -k k8s/overlay/${env.BRANCH_NAME} -n ${k8s_namespace}"
 
-                    echo "Verifying deployment ..."
-                    def status = sh(script: "kubectl rollout status deployment/develop-todo-webapp-deployment -n ${k8s_namespace}", returnStdout: true)
-                    def exitCode = sh(script: 'echo $?', returnStdout: true)
-                    if (exitCode) {
-                        echo "Kubernetes deployment is successful"
-                    } else {
-                        error "Pipeline aborted due to kubernetes deployment error - ${status}"
+                        echo "Verifying deployment ..."
+                        def status = ""
+                        timeout(time: 2, unit: 'MINUTES') {
+                            status = sh(script: "kubectl rollout status deployment/develop-todo-webapp-deployment -n ${k8s_namespace}", returnStdout: true)
+                        }
+                        def exitCode = sh(script: 'echo $?', returnStdout: true)
+                        if (exitCode) {
+                            echo "Kubernetes deployment is successful"
+                        } else {
+                            error "Pipeline aborted due to kubernetes deployment error - ${status}"
+                        }
+                    } catch (err) {
+                        error "Pipeline aborted due to kubernetes deployment error - ${err}"
                     }
                 }
             }
